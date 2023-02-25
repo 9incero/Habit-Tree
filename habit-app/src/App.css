@@ -5,10 +5,23 @@
 
 
 .dot {
+  float:left;
   height: 8px;
   width: 8px;
-  background-color: #f87171;
+  /* background-color: #f87171; */
   border-radius: 50%;
-  display: flex;
+  display: inline-block;
   margin-left: 1px;
+  
+}
+
+.detailtdot {
+  float:left;
+  height: 100px;
+  width: 100px;
+  /* background-color: #f87171; */
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 1px;
+  
 }

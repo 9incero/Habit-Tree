@@ -20,43 +20,96 @@ app.add_middleware(
 )
 
 
-class Date(BaseModel):
-    save_date: str
+def load_habit_list():
+    global habit_list
+    habit_list = []
+    file = open("./database/newhabit.txt", 'r')
+    for habit in file.readlines():
+        habit_list.append(habit.split(',')[0])
+    file.close()
+    print(habit_list)
+
+
+habit_list = []
+load_habit_list()
 
 
 class NewHabit(BaseModel):
     name: str
-    achieve_num: int
+    goal: int
     cycle: int
     details: str
+    start: str
+    color: str
 
 
-@app.post("/save")
-def save_date(date: Date):
-    file = open("./database/date.txt", 'a')
-    file.write(date.save_date)
-    file.write('\n')
+class Achievedate(BaseModel):
+    name: str
+    date: str
+
+
+@app.get('/readhabit')
+def habitdate():
+    habit = {}
+    file = open("./database/newhabit.txt", 'r')
+    for line in file.readlines():
+        tmp = line.split(',')[1:6]
+        print(tmp)
+        tmp.append(line.split(',')[6][:-1])
+        print(tmp)
+        habit[line.split(',')[0]] = tmp
     file.close()
-    return date.save_date
+    return habit
 
 
-@app.get("/")
-def read_marks():
-    marks = {}
-    file = open("./database/date.txt", 'r')
-    lines = file.readlines()
-    i = 0
-    for line in lines:
-        i += 1
-        marks[i] = line[:-1]
-    return marks
+file = open("./database/newhabit.txt", 'r')
+i = len(file.readlines())
 
 
 @app.post('/newhabit')
-def newhabit():
+def newhabit(item: NewHabit):
+    global i
     file = open("./database/newhabit.txt", 'a')
-    file.write(NewHabit.name+','+NewHabit.achieve_num +
-               ','+NewHabit.cycle+','+NewHabit.details)
+    file.write(
+        f"{i},{item.name},{item.goal},{item.cycle},{item.details},{item.start},{item.color}")
     file.write('\n')
     file.close()
-    return NewHabit
+    load_habit_list()
+    i += 1
+    return item
+
+
+@app.post('/achievedate')
+def achivevdate(item: Achievedate):
+    file = open("./database/achievedate.txt", 'a')
+    file.write(f"{item.name},{item.date}")
+    file.write('\n')
+    file.close()
+    return item
+
+
+@app.post('/deleteachieve')
+def deleteachieve(item: Achievedate):
+    with open("./database/achievedate.txt", "r") as f:
+        lines = f.readlines()
+    with open("./database/achievedate.txt", "w") as f:
+        for line in lines:
+            if line.strip("\n") != f"{item.name},{item.date}":
+                f.write(line)
+    return item
+
+
+@app.get('/counthabit')
+def counthabit():
+    counth = {}
+    file = open("./database/newhabit.txt", 'r')
+    for line in file.readlines():
+        counth[line.split(',')[1]] = 0
+    file.close()
+    print(counth)
+    with open("./database/achievedate.txt", "r") as f:
+        for line in f.readlines():
+
+            counth[line.split(',')[0]] += 1
+
+    return counth
