@@ -14,7 +14,10 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { NavLink, Route, Routes, useParams } from "react-router-dom";
 import { ChromePicker } from "react-color";
+import Accordion from "react-bootstrap/Accordion";
 import ProgressBar from "@ramonak/react-progress-bar";
+import Card from "react-bootstrap/Card";
+import ListGroup from "react-bootstrap/ListGroup";
 
 function Habitlist(data) {
   console.log(data);
@@ -24,20 +27,33 @@ function Habitlist(data) {
   for (let k in d) {
     console.log(k);
     hlist.push(
-      <div>
-        <h3>{k}</h3>
-        <h5>목표: {d[k][0]}</h5>
-        <h5>성취: {d[k][5]}</h5>
-        <h5>달성률: {(d[k][5] / d[k][0]) * 100}%</h5>
-        <ProgressBar completed={(d[k][5] / d[k][0]) * 100} bgColor={d[k][4]} />;
+      <Accordion
+        style={{ display: "inline-block", width: "350px" }}
+        defaultActiveKey={["0"]}
+        alwaysOpen
+      >
         <p></p>
-      </div>
+        <Accordion.Item eventKey="0">
+          <Accordion.Header>{k}</Accordion.Header>
+          <Accordion.Body>
+            <h5>목표: {d[k][0]}</h5>
+            <h5>성취: {d[k][5]}</h5>
+            <h5>달성률: {(d[k][5] / d[k][0]) * 100}%</h5>
+            <ProgressBar
+              completed={(d[k][5] / d[k][0]) * 100}
+              bgColor={d[k][4]}
+            />
+          </Accordion.Body>
+        </Accordion.Item>
+      </Accordion>
     );
   }
   return (
     <div>
-      <h1>습관목록</h1>
       <p></p>
+      <h1 style={{ paddingLeft: "10px" }}>습관목록</h1>
+      <p></p>
+      <div style={{ height: "5%" }}></div>
       {hlist}
     </div>
   );
@@ -73,8 +89,9 @@ function HabitDetails(data) {
   return (
     <div>
       <h1>{params}</h1>
-      <h3>: {nowhabit[2]}</h3>
-      {empty}
+      <h3> {nowhabit[2]}</h3>
+      <p></p>
+      <div>{empty}</div>
     </div>
   );
 }
@@ -83,8 +100,8 @@ function Modal_form(props) {
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  const [goal, setGoal] = useState("goal");
-  const [cycle, setCycle] = useState("cycle");
+  const [goal, setGoal] = useState(<p></p>);
+  const [cycle, setCycle] = useState(<p></p>);
   const [startDate, setStartDate] = useState(new Date());
   const [habitname, setHabitname] = useState("");
   const [details, setDetails] = useState("");
@@ -92,6 +109,9 @@ function Modal_form(props) {
 
   return (
     <>
+      <NavLink to="/habitlist">
+        <Button variant="primary">=</Button>
+      </NavLink>
       <Button variant="primary" onClick={handleShow}>
         +
       </Button>
@@ -145,19 +165,26 @@ function Modal_form(props) {
               <Dropdown.Item eventKey="7">7일</Dropdown.Item>
             </DropdownButton>
             {cycle}
-            <h3>시작일</h3>
+            <p></p>
+            <span>시작일</span>
             <DatePicker
+              dateFormat={moment(startDate).format("YYYY-MM-DD")}
               selected={startDate}
               onChange={(date) => {
                 setStartDate(date);
               }}
             />
-
+            <p></p>
+            <input
+              placeholder="아래 색을 클릭하세요"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+            />
             <ChromePicker
               color={color}
               onChange={(color) => setColor(color.hex)}
             />
-            <input value={color} onChange={(e) => setColor(e.target.value)} />
+            <p></p>
             <Form.Group
               className="mb-3"
               controlId="exampleForm.ControlTextarea1"
@@ -202,7 +229,7 @@ function App() {
   const [value, setValue] = useState(new Date());
   let mark = [];
   const [marks, setMarks] = useState({ 습관: [mark, "#000"] });
-  const [showFooter, setShowFooter] = useState(false);
+  const [showFooter, setShowFooter] = useState(true);
   const [boxchecked, setBoxchecked] = useState([]);
   const [context, setContext] = useState();
 
@@ -228,7 +255,7 @@ function App() {
       });
   }
 
-  let footer = "아무 날짜도 없음";
+  let footer = "";
   if (showFooter) {
     let tmp = [];
     let dayvalue;
@@ -241,43 +268,64 @@ function App() {
 
     //어떤기준으로 체크박스가 남아있는지
     const checkboxList = tmp.map((check) => (
-      <div key={dayvalue + check}>
-        <input
-          id={dayvalue + " " + check}
-          type="checkbox"
-          defaultChecked={
-            boxchecked.includes(dayvalue + " " + check) ? true : false
-          }
-          onClick={(e) => {
-            console.log(e.target.id);
-            if (!boxchecked.includes(e.target.id)) {
-              let newchecked = [...boxchecked];
-              newchecked.push(e.target.id);
-              setBoxchecked(newchecked);
-              console.log(newchecked);
-              change_achieve("/achievedate", check, dayvalue);
-            } else {
-              let newchecked = [...boxchecked];
-              for (let i = 0; i < newchecked.length; i++) {
-                if (newchecked[i] === e.target.id) {
-                  newchecked.splice(i, 1);
-                  i--;
-                  break;
-                }
-              }
-              setBoxchecked(newchecked);
-              change_achieve("/deleteachieve", check, dayvalue);
+      <ListGroup.Item>
+        <div className="detailhabit" key={dayvalue + check}>
+          <input
+            id={dayvalue + " " + check}
+            type="checkbox"
+            defaultChecked={
+              boxchecked.includes(dayvalue + " " + check) ? true : false
             }
-          }}
-        ></input>
-        <NavLink to={"/" + check}>{check}</NavLink>
-      </div>
+            onClick={(e) => {
+              console.log(e.target.id);
+              if (!boxchecked.includes(e.target.id)) {
+                let newchecked = [...boxchecked];
+                newchecked.push(e.target.id);
+                setBoxchecked(newchecked);
+                console.log(newchecked);
+                change_achieve("/achievedate", check, dayvalue);
+              } else {
+                let newchecked = [...boxchecked];
+                for (let i = 0; i < newchecked.length; i++) {
+                  if (newchecked[i] === e.target.id) {
+                    newchecked.splice(i, 1);
+                    i--;
+                    break;
+                  }
+                }
+                setBoxchecked(newchecked);
+                change_achieve("/deleteachieve", check, dayvalue);
+              }
+            }}
+          ></input>
+          <NavLink to={"/" + check} style={{ textDecoration: "none" }}>
+            {" "}
+            {check}
+          </NavLink>
+        </div>
+      </ListGroup.Item>
     ));
     footer = (
-      <>
-        <h1>{moment(value).format("YYYY년 MM월 DD일")}</h1>
-        {checkboxList}
-      </>
+      <Card
+        class="d-flex justify-content-end"
+        style={{
+          float: "none",
+          margin: 0,
+          display: "inline-block",
+          width: "350px",
+          textAlign: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Card.Header>{moment(value).format("YYYY년 MM월 DD일")}</Card.Header>
+        <ListGroup variant="flush">{checkboxList}</ListGroup>
+      </Card>
+
+      // <div>
+      //   <p></p>
+      //   <h3>{moment(value).format("YYYY년 MM월 DD일")}</h3>
+      //   {checkboxList}
+      // </div>
     );
   }
 
@@ -363,14 +411,12 @@ function App() {
   };
 
   return (
-    <div>
+    <div className="calendar">
       <Routes>
         <Route
           path="/"
           element={
             <div>
-              <button onClick={habitdate}>#</button>
-              <NavLink to="/habitlist">목록</NavLink>
               <Modal_form habitmaker={habitmaker} />
               <Calendar
                 value={value}
@@ -394,8 +440,8 @@ function App() {
                 //날짜를 다 훑고나서 습관을 훑음.. map으로 뿌릴수가없음.......
                 tileContent={findDayHabbit}
               />
-
-              {footer}
+              <p></p>
+              <div className="content">{footer}</div>
             </div>
           }
         ></Route>
